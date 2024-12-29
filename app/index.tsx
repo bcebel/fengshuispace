@@ -5,7 +5,7 @@ export default function Index() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetch("https://minnowspacebackend-e6635e46c3d0.herokuapp.com/api") // Replace with your backend URL
+    fetch("https://fengshuispace-44ba12f83e89.herokuapp.com/api") // Replace with your backend URL
       .then((response) => response.json())
       .then((data) => setMessage(data.message))
       .catch((error) => console.error(error));
