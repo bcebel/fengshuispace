@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-
+import App from "./components/wombat"; // Import the 3D scene 
+// component
+import Howdy from "./components/tf"; // Import the 3D scene component
 export default function Index() {
   const [message, setMessage] = useState("");
 
@@ -13,7 +15,12 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      <Text>{message || "Loading..!."}</Text>
+      <Text style={styles.message}>{message || "Loading..!."}</Text>
+      <View style={styles.threeContainer}>
+        {/* Render the 3D scene */}
+        <App />
+        <Howdy />
+      </View>
     </View>
   );
 }
@@ -25,19 +32,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#fff",
   },
+  message: {
+    marginBottom: 20,
+    fontSize: 18,
+    textAlign: "center",
+  },
+  threeContainer: {
+    flex: 1,
+    width: "100%",
+  },
 });
-/*
-export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
-  );
-}
-  */
