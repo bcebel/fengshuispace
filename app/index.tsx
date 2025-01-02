@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import App from "./components/wombat"; // Import the 3D scene 
+import Zapp from "./components/fiber";
 // component
-import Howdy from "./components/tf"; // Import the 3D scene component
 export default function Index() {
   const [message, setMessage] = useState("");
 
@@ -18,8 +17,8 @@ export default function Index() {
       <Text style={styles.message}>{message || "Loading..!."}</Text>
       <View style={styles.threeContainer}>
         {/* Render the 3D scene */}
-        <App />
-        <Howdy />
+
+        <Zapp />
       </View>
     </View>
   );
