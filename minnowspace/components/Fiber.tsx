@@ -73,7 +73,7 @@ export default function Zapp() {
   return (
     <Canvas>
       <mesh>
-        <torusGeometry args={[1, 0.5, 32, 100]} />
+        <sphereGeometry args={[1, 0.5, 32, 100]} />
         <meshNormalMaterial />
       </mesh>
       <Viewcube />
