@@ -1,4 +1,3 @@
-"use dom";
 import * as THREE from "three";
 import React, { useRef, useLayoutEffect, useState } from "react";
 import { Canvas, useFrame, useThree, createPortal } from "@react-three/fiber";
@@ -73,7 +72,7 @@ export default function Zapp() {
   return (
     <Canvas>
       <mesh>
-        <sphereGeometry args={[1, 0.5, 32, 100]} />
+        <torusGeometry args={[1, 0.5, 32, 100]} />
         <meshNormalMaterial />
       </mesh>
       <Viewcube />

@@ -1,5 +1,5 @@
 {
-  "name": "minnowspace",
+  "name": "fengshuispace",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@pmndrs/assets": "^1.7.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "@react-three/drei": "^9.120.5",
@@ -24,6 +25,7 @@
     "expo-blur": "~14.0.1",
     "expo-constants": "~17.0.3",
     "expo-font": "~13.0.2",
+    "expo-gl": "~15.0.2",
     "expo-haptics": "~14.0.0",
     "expo-linking": "~7.0.3",
     "expo-router": "~4.0.15",
@@ -42,7 +44,7 @@
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
     "three": "^0.172.0",
-    "expo-gl": "~15.0.2"
+    "undefined": "react-dom/client"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
