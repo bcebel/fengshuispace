@@ -13,10 +13,16 @@ function Viewcube() {
   } = useThree();
   const [scene] = useState(() => new THREE.Scene());
   const [camera] = useState(
-    () => new THREE.OrthographicCamera(-1, 1, 1, -1, .0001,1000000)
+    () => new THREE.OrthographicCamera(-1, 1, 1, -1, .001,1000000)
   );
 
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
+   const ref = useRef<THREE.Mesh>(null!);
+  const [orientation, setOrientation] = useState({
+    alpha: 0,
+    beta: 0,
+    gamma: 0,
+  });
 
   useEffect(() => {
     // Load the texture
@@ -31,6 +37,18 @@ function Viewcube() {
         console.error("Error loading texture:", error);
       }
     );
+      const handleOrientation = (event: DeviceOrientationEvent) => {
+        setOrientation({
+          alpha: event.alpha || 0, // Rotation around the z-axis
+          beta: event.beta || 0, // Tilt front-to-back
+          gamma: event.gamma || 0, // Tilt left-to-right
+        });
+      };
+     window.addEventListener("deviceorientation", handleOrientation);
+
+    return () => {
+      window.removeEventListener("deviceorientation", handleOrientation);
+    };
   }, []);
 
   useLayoutEffect(() => {
@@ -42,7 +60,7 @@ function Viewcube() {
     camera.updateProjectionMatrix();
   }, [size]);
 
-  const ref = useRef<THREE.Mesh>(null!);
+ 
   const [hover, set] = useState<number | null>(null);
   const matrix = new THREE.Matrix4();
 
