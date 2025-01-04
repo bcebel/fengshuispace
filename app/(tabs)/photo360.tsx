@@ -21,11 +21,10 @@ export default function TabTwoScreen() {
         />
       }
     >
-      <Image source={require("../../assets/images/fs.png")} />;
-      <Xapp />
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
+     <Xapp />  </ThemedView>
+     
+
       <ThemedText>
         This app includes example code to help you get started.
       </ThemedText>
@@ -129,5 +128,6 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
     gap: 8,
+    height: 400,
   },
 });
