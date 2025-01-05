@@ -25,6 +25,10 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+       ["expo-sensors",
+        {
+          "motionPermission": "Allow $(PRODUCT_NAME) to access your device motion"
+        }],
       "expo-router",
       [
         "expo-splash-screen",
@@ -34,7 +38,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

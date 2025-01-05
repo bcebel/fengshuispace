@@ -1,113 +1,135 @@
 import * as THREE from "three";
-import React, { useRef, useLayoutEffect, useState, useEffect } from "react";
-import { Canvas, useFrame, useThree, createPortal } from "@react-three/fiber";
+import React, { useRef, useEffect, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { DeviceMotion } from "expo-sensors";
 import { OrbitControls } from "@react-three/drei";
+import { useLoader } from "@react-three/fiber";
 
-function Viewcube() {
-  const {
-    gl,
-    scene: defaultScene,
-    camera: defaultCamera,
-    size,
-    events,
-  } = useThree();
-  const [scene] = useState(() => new THREE.Scene());
-  const [camera] = useState(
-    () => new THREE.OrthographicCamera(-1, 1, 1, -1, .001,1000000)
-  );
-
-  const [texture, setTexture] = useState<THREE.Texture | null>(null);
-   const ref = useRef<THREE.Mesh>(null!);
+function InsideSphere() {
+  const ref = useRef<THREE.Mesh>(null!);
   const [orientation, setOrientation] = useState({
     alpha: 0,
     beta: 0,
     gamma: 0,
   });
+  const [heading, setHeading] = useState(0); // Cardinal direction
+  const [permissionState, setPermissionState] = useState("unknown");
+
+  const texture = useLoader(
+    THREE.TextureLoader,
+    "https://minnowspace.com/fs.png"
+  );
 
   useEffect(() => {
-    // Load the texture
-    const loader = new THREE.TextureLoader();
-    loader.load(
-      "https://minnowspace.com/fs.png", // Replace with the path to your texture image
-      (loadedTexture) => {
-        setTexture(loadedTexture);
-      },
-      undefined,
-      (error) => {
-        console.error("Error loading texture:", error);
-      }
-    );
-      const handleOrientation = (event: DeviceOrientationEvent) => {
+    const handleMotion = ({ rotation, heading }) => {
+      if (rotation) {
         setOrientation({
-          alpha: event.alpha || 0, // Rotation around the z-axis
-          beta: event.beta || 0, // Tilt front-to-back
-          gamma: event.gamma || 0, // Tilt left-to-right
+          alpha: rotation.alpha * (Math.PI / 180),
+          beta: rotation.beta * (Math.PI / 180),
+          gamma: rotation.gamma * (Math.PI / 180),
         });
-      };
-     window.addEventListener("deviceorientation", handleOrientation);
+
+        setHeading(heading); // Update heading
+      }
+    };
+
+    // Request motion permission
+    const requestMotionPermission = async () => {
+      try {
+        if (
+          typeof DeviceMotion !== "undefined" &&
+          typeof DeviceMotion.requestPermission === "function"
+        ) {
+          const permission = await DeviceMotion.requestPermission();
+          setPermissionState(permission);
+          if (permission === "granted") {
+            DeviceMotion.addListener(handleMotion);
+          }
+        } else {
+          setPermissionState("granted");
+          DeviceMotion.addListener(handleMotion);
+        }
+      } catch (error) {
+        console.error("Error requesting motion permission:", error);
+        setPermissionState("error");
+      }
+    };
+
+    requestMotionPermission();
 
     return () => {
-      window.removeEventListener("deviceorientation", handleOrientation);
+      DeviceMotion.removeAllListeners();
     };
   }, []);
 
-  useLayoutEffect(() => {
-    camera.left = -size.width / 2;
-    camera.right = size.width / 2;
-    camera.top = size.height / 2;
-    camera.bottom = -size.height / 2;
-    camera.position.set(0, 0, 100);
-    camera.updateProjectionMatrix();
-  }, [size]);
-
- 
-  const [hover, set] = useState<number | null>(null);
-  const matrix = new THREE.Matrix4();
-
   useFrame(() => {
-    matrix.copy(defaultCamera.matrix).invert();
-    ref.current.quaternion.setFromRotationMatrix(matrix);
-    gl.autoClear = true;
-    gl.render(defaultScene, defaultCamera);
-    gl.autoClear = false;
-    gl.clearDepth();
-    gl.render(scene, camera);
-  }, 1);
+    if (ref.current) {
+      const euler = new THREE.Euler(
+        orientation.alpha,
+        orientation.beta,
+        orientation.gamma
+      );
+      ref.current.rotation.copy(euler);
+      ref.current.rotation.y = THREE.MathUtils.lerp(
+        ref.current.rotation.y,
+        heading * (Math.PI / 180),
+        0.1
+      );
+    }
+  });
+
+  useEffect(() => {
+    const debugDiv = document.createElement("div");
+    debugDiv.style.position = "fixed";
+    debugDiv.style.bottom = "10px";
+    debugDiv.style.left = "10px";
+    debugDiv.style.backgroundColor = "rgba(0,0,0,0.7)";
+    debugDiv.style.color = "white";
+    debugDiv.style.padding = "10px";
+    debugDiv.style.fontFamily = "monospace";
+    debugDiv.style.zIndex = "1000";
+    document.body.appendChild(debugDiv);
+
+    const updateDebug = () => {
+      debugDiv.innerHTML = `
+        Permission: ${permissionState}<br>
+        Heading: ${heading.toFixed(2)}°<br>
+        Alpha: ${orientation.alpha.toFixed(2)}<br>
+        Beta: ${orientation.beta.toFixed(2)}<br>
+        Gamma: ${orientation.gamma.toFixed(2)}
+      `;
+    };
+
+    const interval = setInterval(updateDebug, 100);
+
+    return () => {
+      clearInterval(interval);
+      document.body.removeChild(debugDiv);
+    };
+  }, [orientation, heading, permissionState]);
 
   return (
-    <>
-      {createPortal(
-        <group>
-          <mesh
-            ref={ref}
-            position={[size.width / 20 - 120, size.height / 2 - 120, 0]}
-            onPointerOut={() => set(null)}
-            onPointerMove={(e) => set(Math.floor((e.faceIndex || 0) / 2))}
-          >
-            <sphereGeometry args={[100, 52, 56]} />
-            {texture ? (
-              <meshBasicMaterial map={texture} />
-            ) : (
-              <meshLambertMaterial color="white" />
-            )}
-          </mesh>
-          <ambientLight intensity={100.5} />
-          <pointLight decay={100} position={[10, 10, 10]} intensity={10.5} />
-        </group>,
-        scene,
-        { camera, events: { priority: events.priority + 1 } }
-      )}
-    </>
+    <mesh ref={ref}>
+      <sphereGeometry args={[5, 64, 64]} />
+      <meshBasicMaterial
+        map={texture}
+        side={THREE.DoubleSide} // Correct to render inside sphere properly
+        transparent={true}
+      />
+    </mesh>
   );
 }
 
 export default function Zapp() {
   return (
-    <Canvas>
-      <mesh>
-        <Viewcube />
-        <OrbitControls />
-      </mesh>
+    <Canvas camera={{ position: [0, 0, 0.1], near: 0.1, far: 100, fov: 75 }}>
+      <InsideSphere />
+      <OrbitControls
+        enablePan={false}
+        enableZoom={false}
+        enableDamping={true}
+        dampingFactor={0.05}
+      />
     </Canvas>
   );
 }

@@ -6,6 +6,7 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Zapp from "@/components/Fiber";
+import Compass from "@/components/Compass";
 export default function HomeScreen() {
   return (
     <ParallaxScrollView
@@ -21,6 +22,7 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <Zapp />
       </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>
@@ -36,7 +38,9 @@ export default function HomeScreen() {
           </ThemedText>{" "}
           to open developer tools.
         </ThemedText>
+
       </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 2: Explore</ThemedText>
         <ThemedText>
@@ -44,6 +48,7 @@ export default function HomeScreen() {
           starter app.
         </ThemedText>
       </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
         <ThemedText>
