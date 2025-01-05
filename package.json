@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
-    "@pmndrs/assets": "^1.7.0",
+       "@pmndrs/assets": "^1.7.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "@react-three/drei": "^9.120.5",
@@ -43,8 +43,8 @@
     "react-native-screens": "~4.4.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
-    "three": "^0.172.0",
-    "undefined": "react-dom/client"
+    "three": "^0.172.0"
+ 
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -56,5 +56,17 @@
     "react-test-renderer": "18.3.1",
     "typescript": "^5.3.3"
   },
-  "private": true
+  "private": true,
+  "description": "This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcebel/fengshuispace.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bcebel/fengshuispace/issues"
+  },
+  "homepage": "https://github.com/bcebel/fengshuispace#readme"
 }
