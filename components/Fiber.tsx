@@ -17,7 +17,7 @@ function InsideSphere() {
 
   const texture = useLoader(
     THREE.TextureLoader,
-    "https://minnowspace.com/fs.png"
+    "https://fengshuispace.vercel.app/fs.png"
   );
 
   useEffect(() => {
