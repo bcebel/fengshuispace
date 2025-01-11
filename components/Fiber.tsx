@@ -1,10 +1,25 @@
 import ExpoTHREE from "expo-three";
-import {THREE} from "expo-three";
+import { THREE } from "expo-three";
+
 import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import * as DeviceMotion from "expo-sensors";
+import * as DeviceMotion from "expo-sensors/build/DeviceMotion";
 import { OrbitControls } from "@react-three/drei";
 import { useLoader } from "@react-three/fiber";
+import { useHeading } from "../app/(tabs)/location";
+const Compass = () => {
+  const { heading, error } = useHeading();
+
+  return (
+    <div>
+      {error ? (
+        <p>Error: {error}</p>
+      ) : (
+        <p>Heading: {heading?.toFixed(2) || "Loading..."}</p>
+      )}
+    </div>
+  );
+};
 
 function InsideSphere() {
   const ref = useRef<THREE.Mesh>(null!);
@@ -36,21 +51,14 @@ function InsideSphere() {
       }
     };
 
-    // Request motion permission
     const requestMotionPermission = async () => {
       try {
-        if (
-          typeof DeviceMotion !== "undefined" &&
-          typeof DeviceMotion.requestPermissionsAsync === "function"
-        ) {
-          const permission = await DeviceMotion.requestPermissionsAsync();
-          setPermissionState(permission);
-          if (permission.status === "granted") {
-            DeviceMotion.addListener(handleMotion);
-          }
-        } else {
-          setPermissionState("granted");
-          DeviceMotion.addListener(handleMotion);
+        const permission = await DeviceMotion.requestPermissionsAsync();
+        setPermissionState(permission.status);
+
+        if (permission.status === "granted") {
+          const subscription = DeviceMotion.addListener(handleMotion);
+          return () => subscription.remove(); // Cleanup on unmount
         }
       } catch (error) {
         console.error("Error requesting motion permission:", error);
@@ -59,10 +67,6 @@ function InsideSphere() {
     };
 
     requestMotionPermission();
-
-    return () => {
-      DeviceMotion.removeListener(handleMotion);
-    };
   }, []);
 
   useFrame(() => {

@@ -24,6 +24,9 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   container: {
+    backgroundColor: "green",
+    height: 500,
+    width: 300,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,

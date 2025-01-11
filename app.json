@@ -29,6 +29,10 @@
         {
           "motionPermission": "Allow $(PRODUCT_NAME) to access your device motion"
         }],
+           ["expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }],
       "expo-router",
       [
         "expo-splash-screen",
