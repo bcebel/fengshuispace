@@ -1,7 +1,8 @@
-import * as THREE from "three";
+import ExpoTHREE from "expo-three";
+import {THREE} from "expo-three";
 import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { DeviceMotion } from "expo-sensors";
+import * as DeviceMotion from "expo-sensors";
 import { OrbitControls } from "@react-three/drei";
 import { useLoader } from "@react-three/fiber";
 
@@ -21,7 +22,8 @@ function InsideSphere() {
   );
 
   useEffect(() => {
-    const handleMotion = ({ rotation, heading }) => {
+    const handleMotion = (event: DeviceMotion.DeviceMotionMeasurement) => {
+      const { rotation } = event;
       if (rotation) {
         setOrientation({
           alpha: rotation.alpha * (Math.PI / 180),
@@ -29,7 +31,8 @@ function InsideSphere() {
           gamma: rotation.gamma * (Math.PI / 180),
         });
 
-        setHeading(heading); // Update heading
+        // Assuming heading can be derived from alpha
+        setHeading(rotation.alpha); // Update heading
       }
     };
 
@@ -38,11 +41,11 @@ function InsideSphere() {
       try {
         if (
           typeof DeviceMotion !== "undefined" &&
-          typeof DeviceMotion.requestPermission === "function"
+          typeof DeviceMotion.requestPermissionsAsync === "function"
         ) {
-          const permission = await DeviceMotion.requestPermission();
+          const permission = await DeviceMotion.requestPermissionsAsync();
           setPermissionState(permission);
-          if (permission === "granted") {
+          if (permission.status === "granted") {
             DeviceMotion.addListener(handleMotion);
           }
         } else {
@@ -58,7 +61,7 @@ function InsideSphere() {
     requestMotionPermission();
 
     return () => {
-      DeviceMotion.removeAllListeners();
+      DeviceMotion.removeListener(handleMotion);
     };
   }, []);
 
