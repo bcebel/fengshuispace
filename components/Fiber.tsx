@@ -6,9 +6,9 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import * as DeviceMotion from "expo-sensors/build/DeviceMotion";
 import { OrbitControls } from "@react-three/drei";
 import { useLoader } from "@react-three/fiber";
-import { useHeading } from "../app/(tabs)/location";
+import { useLocationAndHeading } from "../hooks/useLocationAndHeading";
 const Compass = () => {
-  const { heading, error } = useHeading();
+  const { heading, error } = useLocationAndHeading();
 
   return (
     <div>

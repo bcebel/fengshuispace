@@ -16,5 +16,5 @@
     "components/Fiber.tsx",
     "hooks/useHeading.ts",
     "app/(tabs)/location.js"
-  ]
+, "app/(tabs)/test.js"  ]
 }
