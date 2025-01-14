@@ -4,9 +4,8 @@ import { Image, StyleSheet, Platform } from "react-native";
 import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
- v
+ import { ThemedView } from "@/components/ThemedView";
 import Zapp from "@/components/Fiber";
-import Compass from "@/components/Compass";
 import React from "react";
 export default function HomeScreen() {
   return (
