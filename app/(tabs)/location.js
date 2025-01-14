@@ -48,12 +48,12 @@ export default function App() {
     getHeading();
   }, []);
 
-  const [rotation, setRotation] = useState({ pitch: 0, roll: 0, yaw: 0 });
+  const [rotation, setRotation] = useState({ pitch: 0, yaw: 0 });
 
   useEffect(() => {
     const subscription = DeviceMotion.addListener((motionData) => {
-      const { roll, pitch, yaw } = motionData.rotation; // rotation data in radians
-      setRotation({ pitch, roll, yaw });
+      const { pitch, yaw } = motionData.rotation; // rotation data in radians
+      setRotation({ pitch, yaw });
     });
 
     DeviceMotion.setUpdateInterval(16); // 60 FPS (1000 ms / 16 ms)

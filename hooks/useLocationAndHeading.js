@@ -5,7 +5,7 @@ import { Magnetometer, DeviceMotion } from "expo-sensors";
 export function useMotionAndSensors() {
   const [location, setLocation] = useState(null);
   const [heading, setHeading] = useState(null);
-  const [rotation, setRotation] = useState({ pitch: 0, roll: 0, yaw: 0 });
+  const [rotation, setRotation] = useState({ pitch: 0, yaw: 0 });
   const [magneticHeading, setMagneticHeading] = useState(null);
 
   useEffect(() => {
@@ -43,8 +43,8 @@ export function useMotionAndSensors() {
   useEffect(() => {
     // Device Motion (for pitch, roll, yaw)
     const motionSubscription = DeviceMotion.addListener((motionData) => {
-      const { roll, pitch, yaw } = motionData.rotation;
-      setRotation({ pitch, roll, yaw });
+      const { pitch, yaw } = motionData.rotation;
+      setRotation({ pitch, yaw });
     });
 
     DeviceMotion.setUpdateInterval(16); // Update ~60 FPS
