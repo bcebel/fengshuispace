@@ -2,10 +2,9 @@ import ExpoTHREE from "expo-three";
 import { THREE } from "expo-three";
 
 import React, { useRef, useEffect, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import * as DeviceMotion from "expo-sensors/build/DeviceMotion";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import * as DeviceMotion from "expo-sensors";
 import { OrbitControls } from "@react-three/drei";
-import { useLoader } from "@react-three/fiber";
 import { useLocationAndHeading } from "../hooks/useLocationAndHeading";
 const Compass = () => {
   const { heading, error } = useLocationAndHeading();
