@@ -1,133 +1,182 @@
-"use dom";
-import { StyleSheet, Image, Platform } from "react-native";
+import React, { useRef, useEffect, useState } from "react";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { DeviceMotion } from "expo-sensors";
+import { OrbitControls } from "@react-three/drei";
+import { THREE } from "expo-three";
+import { StatusBar, Dimensions, Text, View } from "react-native";
 
-import { Collapsible } from "@/components/Collapsible";
-import { ExternalLink } from "@/components/ExternalLink";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import Zapp from "@/components/Fiber";
-import React from "react";
-export default function TabTwoScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
+const { height, width } = Dimensions.get("window");
+const centerX = width / 2,
+  centerY = height / 2;
+
+function InsideSphere() {
+  const ref = useRef<THREE.Mesh>(null!);
+  const [orientation, setOrientation] = useState({
+    alpha: 0,
+    beta: 0,
+    gamma: 0,
+  });
+  const [heading, setHeading] = useState(0); // Cardinal direction
+  const [permissionState, setPermissionState] = useState("unknown");
+
+  const texture = useLoader(
+    THREE.TextureLoader,
+    "https://minnowspace.com/fs.png"
+  );
+
+  useEffect(() => {
+    const handleMotion = (event: DeviceMotion.DeviceMotionMeasurement) => {
+      const { rotation } = event;
+      if (rotation) {
+        setOrientation({
+          alpha: rotation.alpha * (Math.PI / 180),
+          beta: rotation.beta * (Math.PI / 180),
+          gamma: rotation.gamma * (Math.PI / 180),
+        });
+
+        // Assuming heading can be derived from alpha
+        setHeading(rotation.alpha); // Update heading
       }
-    >
-      <Zapp />
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>
-        This app includes example code to help you get started.
-      </ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText>{" "}
-          and{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{" "}
-          sets up the tab navigator.
-        </ThemedText>
+    };
 
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the
-          web version, press <ThemedText type="defaultSemiBold">w</ThemedText>{" "}
-          in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the{" "}
-          <ThemedText type="defaultSemiBold">@2x</ThemedText> and{" "}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to
-          provide files for different screen densities
-        </ThemedText>
-        <Image
-          source={require("@/assets/images/react-logo.png")}
-          style={{ alignSelf: "center" }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText>{" "}
-          to see how to load{" "}
-          <ThemedText style={{ fontFamily: "SpaceMono" }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{" "}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook
-          lets you inspect what the user's current color scheme is, and so you
-          can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{" "}
-          <ThemedText type="defaultSemiBold">
-            components/HelloWave.tsx
-          </ThemedText>{" "}
-          component uses the powerful{" "}
-          <ThemedText type="defaultSemiBold">
-            react-native-reanimated
-          </ThemedText>{" "}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The{" "}
-              <ThemedText type="defaultSemiBold">
-                components/ParallaxScrollView.tsx
-              </ThemedText>{" "}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    const requestMotionPermission = async () => {
+      try {
+        const permission = await DeviceMotion.requestPermissionsAsync();
+        setPermissionState(permission.status);
+
+        if (permission.status === "granted") {
+          const subscription = DeviceMotion.addListener(handleMotion);
+          return () => subscription.remove(); // Cleanup on unmount
+        }
+      } catch (error) {
+        console.error("Error requesting motion permission:", error);
+        setPermissionState("error");
+      }
+    };
+
+    requestMotionPermission();
+  }, []);
+
+  useFrame(() => {
+    if (ref.current) {
+      const euler = new THREE.Euler(
+        orientation.alpha,
+        orientation.beta,
+        orientation.gamma
+      );
+      ref.current.rotation.copy(euler);
+      ref.current.rotation.y = THREE.MathUtils.lerp(
+        ref.current.rotation.y,
+        heading * (Math.PI / 180),
+        0.1
+      );
+    }
+  });
+
+  useEffect(() => {
+    const debugDiv = document.createElement("div");
+    debugDiv.style.position = "fixed";
+    debugDiv.style.bottom = "10px";
+    debugDiv.style.left = "10px";
+    debugDiv.style.backgroundColor = "rgba(0,0,0,0.7)";
+    debugDiv.style.color = "white";
+    debugDiv.style.padding = "10px";
+    debugDiv.style.fontFamily = "monospace";
+    debugDiv.style.zIndex = "1000";
+    document.body.appendChild(debugDiv);
+
+    const updateDebug = () => {
+      debugDiv.innerHTML = `
+        Permission: ${permissionState}<br>
+        Heading: ${heading.toFixed(2)}°<br>
+        Alpha: ${orientation.alpha.toFixed(2)}<br>
+        Beta: ${orientation.beta.toFixed(2)}<br>
+        Gamma: ${orientation.gamma.toFixed(2)}
+      `;
+    };
+
+    const interval = setInterval(updateDebug, 100);
+
+    return () => {
+      clearInterval(interval);
+      document.body.removeChild(debugDiv);
+    };
+  }, [orientation, heading, permissionState]);
+
+  return (
+    <mesh ref={ref}>
+      <sphereGeometry args={[5, 64, 64]} />
+      <meshBasicMaterial
+        map={texture}
+        side={THREE.DoubleSide} // Correct to render inside sphere properly
+        transparent={true}
+      />
+    </mesh>
   );
 }
 
-const styles = StyleSheet.create({
-  headerImage: {
-    color: "#808080",
-    bottom: -90,
-    left: -35,
-    position: "absolute",
-  },
-  titleContainer: {
-    flexDirection: "row",
-    gap: 8,
-  },
-});
+export default function Zapp() {
+  const [data, setData] = useState({});
+
+  useEffect(() => {
+    _subscribe();
+    StatusBar.setHidden(true, "fade");
+    return () => {
+      _unsubscribe();
+    };
+  }, []);
+
+  const _setInterval = () => {
+    DeviceMotion.setUpdateInterval(77); // Set the update interval (in milliseconds)
+  };
+
+  const _subscribe = () => {
+    DeviceMotion.addListener((devicemotionData) => {
+      setData(devicemotionData.rotation); // Set the rotation data (gamma and beta)
+    });
+    _setInterval();
+  };
+
+  const _unsubscribe = () => {
+    DeviceMotion.removeAllListeners(); // Remove all listeners
+  };
+
+  // Safely destructure gamma and beta with default values
+  const { beta = 0, gamma = 0 } = data;
+  const roundedGamma = round(gamma); // Round gamma to 2 decimal places
+  const roundedBeta = round(beta); // Round beta to 2 decimal places
+
+
+  return (
+    <View style={{ flex: 1 }}>
+      <Canvas camera={{ position: [0, 0, 0.1], near: 0.1, far: 100, fov: 75 }}>
+        <InsideSphere />
+        <OrbitControls
+          enablePan={false}
+          enableZoom={false}
+          enableDamping={true}
+          dampingFactor={0.05}
+        />
+      </Canvas>
+      <View
+        style={{
+          position: "absolute",
+          bottom: 20,
+          left: 20,
+          backgroundColor: "rgba(0,0,0,0.7)",
+          padding: 10,
+        }}
+      >
+        <Text style={{ color: "white" }}>Gamma: {roundedGamma}</Text>
+        <Text style={{ color: "white" }}>Beta: {roundedBeta}</Text>
+      </View>
+    </View>
+  );
+}
+
+function round(n) {
+  if (!n) {
+    return 0;
+  }
+  return Math.floor(n * 100) / 100; // Round the number to 2 decimal places
+}
