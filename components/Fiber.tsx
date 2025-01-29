@@ -3,7 +3,7 @@ import { THREE } from "expo-three";
 
 import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import * as DeviceMotion from "expo-sensors";
+import { DeviceMotion } from "expo-sensors";
 import { OrbitControls } from "@react-three/drei";
 import { useLocationAndHeading } from "../hooks/useLocationAndHeading";
 const Compass = () => {
@@ -52,7 +52,7 @@ function InsideSphere() {
 
     const requestMotionPermission = async () => {
       try {
-        const permission = await DeviceMotion.requestPermissionsAsync();
+        const permission = await DeviceMotion.getPermissionsAsync();
         setPermissionState(permission.status);
 
         if (permission.status === "granted") {
