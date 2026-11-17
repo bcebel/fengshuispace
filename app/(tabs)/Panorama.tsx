@@ -10,8 +10,9 @@ import * as THREE from "three";
 import { TextureLoader } from "expo-three";
 import { useDeviceOrientation } from "../../hooks/useDeviceOrientation";
 import { useHeading } from "../../hooks/useHeading2";
+import PANO_URL from "../../assets/images/bagua.png";
 
-const PANO_URL = "https://minnowspace.com/fs.png";
+
 
 // Pre-allocated math objects — avoids GC churn every frame
 const euler = new THREE.Euler();
