@@ -5,9 +5,9 @@ import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { DeviceMotion } from "expo-sensors";
 import { OrbitControls } from "@react-three/drei";
-import { useLocationAndHeading } from "../hooks/useLocationAndHeading";
+import  useMotionAndSensors from "../hooks/useLocationAndHeading";
 const Compass = () => {
-  const { heading, error } = useLocationAndHeading();
+  const { heading, error } = useMotionAndSensors();
 
   return (
     <div>

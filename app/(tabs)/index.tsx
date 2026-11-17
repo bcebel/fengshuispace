@@ -1,8 +1,22 @@
 "use dom";
+// ✅ Hermes-compatible patch for WebGL getProgramInfoLog
+if (
+  global.WebGLRenderingContext &&
+  typeof global.WebGLRenderingContext.prototype.getProgramInfoLog === "function"
+) {
+  const original = global.WebGLRenderingContext.prototype.getProgramInfoLog;
+  global.WebGLRenderingContext.prototype.getProgramInfoLog = function (...args) {
+    const result = original.apply(this, args);
+    return typeof result === "string" ? result : "";
+  };
+}
 import { StyleSheet, } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import Zapp from "@/components/Fiber";
 import React from "react";
+
+
+
 export default function HomeScreen() {
   return (
 
