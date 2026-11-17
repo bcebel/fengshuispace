@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
 import {
   Canvas,
   useFrame,
@@ -13,20 +13,43 @@ import { useHeading } from "../../hooks/useHeading2";
 
 const PANO_URL = "https://minnowspace.com/fs.png";
 
+// Pre-allocated math objects — avoids GC churn every frame
+const euler = new THREE.Euler();
+const qDevice = new THREE.Quaternion();
+const qScreen = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5)); // -90° around X
+const qCompass = new THREE.Quaternion();
+const yAxis = new THREE.Vector3(0, 1, 0);
+const forward = new THREE.Vector3();
+
 function PanoramaScene({ orientation, trueHeading, magHeading }) {
   const { camera } = useThree();
   const texture = useLoader(TextureLoader, PANO_URL);
   const offsetRef = useRef(null);
 
   useFrame(() => {
-    const headingDeg = trueHeading ?? magHeading;
-    const compassRad = headingDeg != null ? (headingDeg * Math.PI) / 180 : null;
+    const { alpha = 0, beta = 0, gamma = 0 } = orientation;
 
-    // Lock the alpha→true-north offset on the first compass sample, then
-    // gently converge it over time. This keeps yaw = alpha − offset equal
-    // to true north even when DeviceMotion.alpha drifts.
-    if (compassRad !== null) {
-      const desired = orientation.alpha - compassRad;
+    // 1. Device orientation → quaternion
+    //    W3C spec is intrinsic Z-X'-Y''; three.js 'YXZ' matches it.
+    //    Negate gamma because the W3C frame is left-handed for roll.
+    euler.set(beta, alpha, -gamma, "YXZ");
+    qDevice.setFromEuler(euler);
+
+    // 2. Bridge sensor frame ↔ camera frame.
+    //    Camera looks down -Z; phone's "forward" is out the back, which is
+    //    already -Z, but the phone's flat plane is +Y. The -90° X rotation
+    //    aligns "hold phone upright" with "look at horizon".
+    qDevice.multiply(qScreen);
+
+    // 3. Compass offset: extract current camera yaw (project forward to XZ),
+    //    compare against compass heading, converge slowly.
+    const headingDeg = trueHeading ?? magHeading;
+    if (headingDeg != null) {
+      forward.set(0, 0, -1).applyQuaternion(qDevice);
+      const currentYaw = Math.atan2(-forward.x, -forward.z);
+      const compassRad = (headingDeg * Math.PI) / 180;
+      const desired = -compassRad - currentYaw;
+
       if (offsetRef.current === null) {
         offsetRef.current = desired;
       } else {
@@ -36,18 +59,17 @@ function PanoramaScene({ orientation, trueHeading, magHeading }) {
       }
     }
 
-    const yaw = orientation.alpha - (offsetRef.current ?? 0);
-
-    camera.rotation.set(
-      orientation.beta, // pitch: look up/down
-      yaw, // yaw: north-anchored
-      -orientation.gamma, // roll: may need sign flip per device
-      "YXZ",
-    );
+    // 4. Apply world-Y compass rotation (premultiply rotates in world space,
+    //    so it does NOT tilt the camera's pitch or roll).
+    qCompass.setFromAxisAngle(yAxis, offsetRef.current ?? 0);
+    camera.quaternion.copy(qCompass).multiply(qDevice);
   });
 
   return (
-    <mesh>
+    // scale={[-1, 1, 1]} un-mirrors the panorama text.
+    // If the sphere turns invisible, change side={THREE.BackSide} to
+    // side={THREE.FrontSide} — the X-flip reverses face winding.
+    <mesh scale={[-1, 1, 1]}>
       <sphereGeometry args={[5, 64, 64]} />
       <meshBasicMaterial map={texture} side={THREE.BackSide} />
     </mesh>
@@ -60,6 +82,8 @@ export default function PanoramaViewer() {
     permission: motionPermission,
     askPermission: askMotion,
   } = useDeviceOrientation();
+
+  // console.log("orientation", orientation);
   const {
     trueHeading,
     magHeading,
