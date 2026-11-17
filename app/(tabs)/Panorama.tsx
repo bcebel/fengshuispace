@@ -22,6 +22,8 @@ const qCompass = new THREE.Quaternion();
 const yAxis = new THREE.Vector3(0, 1, 0);
 const forward = new THREE.Vector3();
 
+const PANO_NORTH_OFFSET_DEG = 157.5;
+
 function PanoramaScene({ orientation, trueHeading, magHeading }) {
   const { camera } = useThree();
   const texture = useLoader(TextureLoader, PANO_URL);
@@ -70,10 +72,29 @@ function PanoramaScene({ orientation, trueHeading, magHeading }) {
     // scale={[-1, 1, 1]} un-mirrors the panorama text.
     // If the sphere turns invisible, change side={THREE.BackSide} to
     // side={THREE.FrontSide} — the X-flip reverses face winding.
-    <mesh scale={[-1, 1, 1]}>
-      <sphereGeometry args={[5, 64, 64]} />
-      <meshBasicMaterial map={texture} side={THREE.BackSide} />
-    </mesh>
+    /*  
+        <mesh position={[0, 0, -4.9]}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <meshBasicMaterial
+            map={texture}
+            side={THREE.BackSide}
+            transparent
+            opacity={0.4}
+          />
+        </mesh>*/
+    <>
+      <>
+        <mesh
+          scale={[-1, 1, 1]}
+          rotation-y={(PANO_NORTH_OFFSET_DEG * Math.PI) / 180}
+        >
+          <sphereGeometry args={[5, 64, 64]} />
+          <meshBasicMaterial map={texture} side={THREE.BackSide} />
+        </mesh>
+
+
+      </>
+    </>
   );
 }
 
