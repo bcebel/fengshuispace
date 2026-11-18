@@ -11,7 +11,7 @@ import { TextureLoader } from "three";
 import { useDeviceOrientation } from "../../hooks/useDeviceOrientation.web";
 import PANO_URL from "../../assets/images/bagua.png";
 
-import { useHeading } from "../../hooks/useHeading2";
+import { useHeading } from "../../hooks/useHeading2.web";
 
 
 // Pre-allocated math objects — avoids GC churn every frame
@@ -22,7 +22,7 @@ const qCompass = new THREE.Quaternion();
 const yAxis = new THREE.Vector3(0, 1, 0);
 const forward = new THREE.Vector3();
 
-const PANO_NORTH_OFFSET_DEG = 0;
+const PANO_NORTH_OFFSET_DEG = 157.5;
 
 
 function PanoramaScene({ orientation, trueHeading, magHeading }) {
