@@ -27,33 +27,9 @@ export default function TabLayout() {
         }),
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Explore",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="paperplane.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="Orientation"
-        options={{
-          title: "Orientation",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="paperplane.fill" color={color} />
-          ),
-        }}
-      />
+
+
+
       <Tabs.Screen
         name="Panorama"
         options={{
@@ -73,24 +49,8 @@ export default function TabLayout() {
         }}
       />
 
-      <Tabs.Screen
-        name="compass"
-        options={{
-          title: "Compass",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="paperplane.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="photo360"
-        options={{
-          title: "Photo360",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="paperplane.fill" color={color} />
-          ),
-        }}
-      />
+
+
     </Tabs>
   );
 }
