@@ -34,15 +34,21 @@
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }],
       "expo-router",
+      
       [
+        
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#ffffff",
+                           "origin": "https://fengshuispace.vercel.app"
+
+
         }
       ],
+      
       "expo-asset"
     ],
     "experiments": {

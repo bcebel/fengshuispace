@@ -55,7 +55,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="panorama"
+        name="Panorama"
         options={{
           title: "Panorama",
           tabBarIcon: ({ color }) => (
@@ -64,7 +64,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="panorama.web.tsx"
+        name="Panorama.web.tsx"
         options={{
           title: "Panorama",
           tabBarIcon: ({ color }) => (
@@ -72,6 +72,7 @@ export default function TabLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="compass"
         options={{

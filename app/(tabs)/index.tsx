@@ -5,47 +5,29 @@ if (
   typeof global.WebGLRenderingContext.prototype.getProgramInfoLog === "function"
 ) {
   const original = global.WebGLRenderingContext.prototype.getProgramInfoLog;
-  global.WebGLRenderingContext.prototype.getProgramInfoLog = function (...args) {
+  global.WebGLRenderingContext.prototype.getProgramInfoLog = function (
+    ...args
+  ) {
     const result = original.apply(this, args);
     return typeof result === "string" ? result : "";
   };
 }
-import { StyleSheet, } from "react-native";
-import { ThemedView } from "@/components/ThemedView";
-import Zapp from "@/components/Fiber";
+
+import { StyleSheet, View } from "react-native";
+import Panorama from "./Panorama"; // Metro figures out .web.tsx vs .tsx
 import React from "react";
-
-
 
 export default function HomeScreen() {
   return (
-
-      <ThemedView style={styles.titleContainer}>
-        <Zapp />
-      </ThemedView>
-
-
-
-   
-  
+    <View style={styles.container}>
+      <Panorama />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
+  container: {
+    flex: 1,
+    backgroundColor: "#000", // Good to have a fallback
   },
 });
