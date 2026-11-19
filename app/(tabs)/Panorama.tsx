@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
+import { useRef, useState } from "react";
+import { View, Text, Pressable, StyleSheet, Dimensions } from "react-native";
 import {
   Canvas,
   useFrame,
@@ -12,7 +12,10 @@ import { useDeviceOrientation } from "../../hooks/useDeviceOrientation";
 import { useHeading } from "../../hooks/useHeading2";
 import PANO_URL from "../../assets/images/bagua.png";
 
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
+const RADIUS = 4.5;
+const PANO_NORTH_OFFSET_DEG = 157.5;
 
 // Pre-allocated math objects — avoids GC churn every frame
 const euler = new THREE.Euler();
@@ -22,30 +25,36 @@ const qCompass = new THREE.Quaternion();
 const yAxis = new THREE.Vector3(0, 1, 0);
 const forward = new THREE.Vector3();
 
-const PANO_NORTH_OFFSET_DEG = 157.5;
+const BAGUA_SECTORS = [
+  { dir: "N", element: "Water", trigram: "☵", angle: 0, color: "#4A90E2" },
+  { dir: "NE", element: "Earth", trigram: "☶", angle: 45, color: "#C9A27E" },
+  { dir: "E", element: "Wood", trigram: "☳", angle: 90, color: "#5A9F68" },
+  { dir: "SE", element: "Wood", trigram: "☴", angle: 135, color: "#7FB88A" },
+  { dir: "S", element: "Fire", trigram: "☲", angle: 180, color: "#D85A4E" },
+  { dir: "SW", element: "Earth", trigram: "☷", angle: 225, color: "#D3B8A6" },
+  { dir: "W", element: "Metal", trigram: "☱", angle: 270, color: "#B0B0B0" },
+  { dir: "NW", element: "Metal", trigram: "☰", angle: 315, color: "#D1D1D1" },
+];
 
-function PanoramaScene({ orientation, trueHeading, magHeading }) {
+function PanoramaScene({ orientation, trueHeading, magHeading, onProject }) {
   const { camera } = useThree();
   const texture = useLoader(TextureLoader, PANO_URL);
   const offsetRef = useRef(null);
+
+  // Pre-allocate a vector for projection to avoid GC
+  const tempV = useRef(new THREE.Vector3());
 
   useFrame(() => {
     const { alpha = 0, beta = 0, gamma = 0 } = orientation;
 
     // 1. Device orientation → quaternion
-    //    W3C spec is intrinsic Z-X'-Y''; three.js 'YXZ' matches it.
-    //    Negate gamma because the W3C frame is left-handed for roll.
     euler.set(beta, alpha, -gamma, "YXZ");
     qDevice.setFromEuler(euler);
 
-    // 2. Bridge sensor frame ↔ camera frame.
-    //    Camera looks down -Z; phone's "forward" is out the back, which is
-    //    already -Z, but the phone's flat plane is +Y. The -90° X rotation
-    //    aligns "hold phone upright" with "look at horizon".
+    // 2. Bridge sensor frame ↔ camera frame (-90° around X)
     qDevice.multiply(qScreen);
 
-    // 3. Compass offset: extract current camera yaw (project forward to XZ),
-    //    compare against compass heading, converge slowly.
+    // 3. Compass offset
     const headingDeg = trueHeading ?? magHeading;
     if (headingDeg != null) {
       forward.set(0, 0, -1).applyQuaternion(qDevice);
@@ -62,39 +71,41 @@ function PanoramaScene({ orientation, trueHeading, magHeading }) {
       }
     }
 
-    // 4. Apply world-Y compass rotation (premultiply rotates in world space,
-    //    so it does NOT tilt the camera's pitch or roll).
+    // 4. Apply world-Y compass rotation
     qCompass.setFromAxisAngle(yAxis, offsetRef.current ?? 0);
     camera.quaternion.copy(qCompass).multiply(qDevice);
+
+    // 5. Project the 3D signposts to 2D screen coordinates
+    const projected = BAGUA_SECTORS.map((sector) => {
+      const rad = (sector.angle * Math.PI) / 180;
+      const x = Math.sin(rad) * RADIUS;
+      const z = -Math.cos(rad) * RADIUS;
+
+      // Set the 3D position and project it to Normalized Device Coordinates (-1 to 1)
+      tempV.current.set(x, 0, z);
+      tempV.current.project(camera);
+
+      // Convert to actual pixel coordinates on the screen
+      return {
+        ...sector,
+        screenX: (tempV.current.x * 0.5 + 0.5) * SCREEN_WIDTH,
+        screenY: (-tempV.current.y * 0.5 + 0.5) * SCREEN_HEIGHT,
+        // visible is false if the signpost is behind the camera
+        visible: tempV.current.z < 1 && tempV.current.z > -1,
+      };
+    });
+
+    onProject(projected);
   });
 
   return (
-    // scale={[-1, 1, 1]} un-mirrors the panorama text.
-    // If the sphere turns invisible, change side={THREE.BackSide} to
-    // side={THREE.FrontSide} — the X-flip reverses face winding.
-    /*  
-        <mesh position={[0, 0, -4.9]}>
-          <sphereGeometry args={[1, 16, 16]} />
-          <meshBasicMaterial
-            map={texture}
-            side={THREE.BackSide}
-            transparent
-            opacity={0.4}
-          />
-        </mesh>*/
-    <>
-      <>
-        <mesh
-          scale={[-1, 1, 1]}
-          rotation-y={(PANO_NORTH_OFFSET_DEG * Math.PI) / 180}
-        >
-          <sphereGeometry args={[5, 64, 64]} />
-          <meshBasicMaterial map={texture} side={THREE.BackSide} />
-        </mesh>
-
-
-      </>
-    </>
+    <mesh
+      scale={[-1, 1, 1]}
+      rotation-y={(PANO_NORTH_OFFSET_DEG * Math.PI) / 180}
+    >
+      <sphereGeometry args={[5, 64, 64]} />
+      <meshBasicMaterial map={texture} side={THREE.BackSide} />
+    </mesh>
   );
 }
 
@@ -105,7 +116,6 @@ export default function PanoramaViewer() {
     askPermission: askMotion,
   } = useDeviceOrientation();
 
-  // console.log("orientation", orientation);
   const {
     trueHeading,
     magHeading,
@@ -113,6 +123,8 @@ export default function PanoramaViewer() {
     askPermission: askHeading,
   } = useHeading();
 
+  // State to hold the projected 2D coordinates
+  const [signposts, setSignposts] = useState([]);
   const ready = motionPermission === "granted";
 
   return (
@@ -120,15 +132,42 @@ export default function PanoramaViewer() {
       <Canvas
         camera={{ position: [0, 0, 0], fov: 75, near: 0.1, far: 100 }}
         onCreated={({ gl }) => {
-          gl.debug.checkShaderErrors = false;
+          if (gl && gl.debug) {
+            gl.debug.checkShaderErrors = false;
+          }
         }}
       >
         <PanoramaScene
           orientation={orientation}
           trueHeading={trueHeading}
           magHeading={magHeading}
+          onProject={setSignposts} // Pass the state setter to the 3D scene
         />
       </Canvas>
+
+      {/* 2D Text Overlays projected onto the 3D scene */}
+      {signposts.map(
+        (post) =>
+          post.visible && (
+            <View
+              key={post.dir}
+              style={[
+                styles.signpost,
+                {
+                  left: post.screenX - 50, // Offset by half the width to center
+                  top: post.screenY - 30, // Offset by half the height to center
+                },
+              ]}
+              pointerEvents="none" // Let touches pass through to the canvas/UI
+            >
+              <Text style={[styles.signpostTrigram, { color: post.color }]}>
+                {post.trigram}
+              </Text>
+              <Text style={styles.signpostDir}>{post.dir}</Text>
+              <Text style={styles.signpostElement}>{post.element}</Text>
+            </View>
+          ),
+      )}
 
       {!ready && (
         <View style={styles.overlay}>
@@ -191,5 +230,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontVariant: ["tabular-nums"],
     textAlign: "center",
+  },
+  // Styles for the 2D projected signposts
+  signpost: {
+    position: "absolute",
+    width: 100, // Fixed width so we can center it easily
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  signpostTrigram: {
+    fontSize: 40,
+    fontWeight: "bold",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  signpostDir: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  signpostElement: {
+    fontSize: 14,
+    color: "#ddd",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 });

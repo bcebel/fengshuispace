@@ -55,7 +55,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="Panorama"
+        name="panorama"
         options={{
           title: "Panorama",
           tabBarIcon: ({ color }) => (
